@@ -174,7 +174,8 @@ var chkCompletion = function(){
 			out += lt + "," + ct + "\r\n";
 			if(idx < 10){ // 最初の10件のみ表示
 				$('#convtable').append('<tr>' + '</tr>');
-				$('#convtable tr:last').append('<td>' + resultset[idx]['literal'] + '</td><td>' + resultset[idx]['uri'] + '</td>');
+				$('#convtable tr:last')
+					.append('<td>' + resultset[idx]['literal'] + '</td><td><a href="' + resultset[idx]['uri'] + '" target="_blank">'+ resultset[idx]['uri'] + '</a></td>');
 			}
 		}
 		setBlobUrl("download", out);
