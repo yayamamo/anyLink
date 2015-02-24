@@ -107,16 +107,7 @@ $(function() {
 					console.log('error', e.target.error.code);
 				}
 				reader.onload = function(e){
-					//$('<div></div>').text(e.target.result).appendTo(outEle)
-					$('#exec_button').hide();
-					dispWorking("処理中");
-					rows = e.target.result.split("\n");
-					result_count = 0;
-					total_count = rows.length;
-					for ( var r in rows ){
-						issueQuery(rows[r], r);
-					}
-					chkCompletion();					
+					processText(e.target.result);
 				};
 				reader.readAsText(files[i], 'UTF-8');
 		 	}
@@ -125,9 +116,13 @@ $(function() {
 });
 		 
 var exec = function() {
+	processText($('#literal').val());
+};
+
+var processText = function(txt) {
 	$('#exec_button').hide();
 	dispWorking("処理中");
-	rows = $('#literal').val().split("\n");
+	rows = txt.split("\n");
 	result_count = 0;
 	total_count = rows.length;
 	for ( var r in rows ){
