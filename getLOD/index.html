@@ -32,6 +32,12 @@
     background-position: center top;
     background-repeat: no-repeat;
 }
+#file-input div.input {
+    padding: 60px;
+    border: solid 3px #555;
+    width: 100px;
+    height: 100px;
+}
 </style>
 </head>
 <body>
@@ -45,17 +51,24 @@
   <form><div class="form-group">
 	<label>SPARQLエンドポイント:</label>
     <input id="endpoint" class="form-control" value="http://ja.dbpedia.org/sparql" type="text">
-    <button class="btn" type="button" id="exec_button" onclick="exec()">割当実行</button>
 	</div>
+	<h4>以下のいずれかの方法で割り当てます。</h4>
 	<div class="form-group">
-	<label>割当対象文字列 (一行一文字列):</label>
+	<label>1. 割り当てたい文字列(一行一文字列)が書かれたファイルを以下にドロップしてください。自動で処理が始まります。</label>
+	<div id="file-input">
+    	<div class="input"></div>
+    	<div class="out"></div>
+	</div></div>
+	<div class="form-group">
+	<label>2. 割り当てたい文字列(一行一文字列)を入力してください。入力後、「割当実行」をクリックしてください。</label>
 	<textarea id="literal" rows=10 class="form-control" ></textarea> 
+    <button class="btn btn-primary btn-lg" type="button" id="exec_button" onclick="exec()">割当実行</button>
   	</div></form>
   </div></div>
   <div class="row"><div class="col-xs-8">
   <!-- csvダウンロード -->
   <div id="download_div"><p>
-  <a id="download" class="btn btn-primary btn-lg" target="_blank">ダウンロード</a></p></div>
+  <a id="download" class="btn btn-success btn-lg" target="_blank">ダウンロード</a></p></div>
   <!-- 変換テーブル -->
   <div id="convtable_area" class="well well-sm center-block">
     <table id="convtable" class="table table-condensed">
@@ -72,6 +85,45 @@ var total_count;
 $('#download_div').hide();
 $('#convtable_area').hide();
 var resultset= [];
+
+$(function() {
+	var inEle = $('#file-input div.input'),
+	outEle = $('#file-input div.out');
+
+	inEle
+	.on('dragenter', function(e) {
+		e.preventDefault();
+	})
+	.on('dragover', function(e){
+		e.preventDefault();
+	})
+	.on('drop', function(e){
+		e.preventDefault();
+		var files = e.originalEvent.dataTransfer.files;
+		for (var i=0; i<files.length; i++) {
+			if (files[i].type === 'text/plain') {
+				var reader = new FileReader();
+				reader.onerror = function(e) {
+					console.log('error', e.target.error.code);
+				}
+				reader.onload = function(e){
+					//$('<div></div>').text(e.target.result).appendTo(outEle)
+					$('#exec_button').hide();
+					dispWorking("処理中");
+					rows = e.target.result.split("\n");
+					result_count = 0;
+					total_count = rows.length;
+					for ( var r in rows ){
+						issueQuery(rows[r], r);
+					}
+					chkCompletion();					
+				};
+				reader.readAsText(files[i], 'UTF-8');
+		 	}
+		}
+	});
+});
+		 
 var exec = function() {
 	$('#exec_button').hide();
 	dispWorking("処理中");
