@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title></title>
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
+<script type="text/javascript" src="http://uedayou.net/SPARQLTimeliner/js_sparql/sparql.js" charset="UTF-8"></script>
+<script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<style>
+#workingNow{
+    border:1px dashed #999;
+    padding:15px;
+    position: fixed;
+    top:20%;
+    left:30%;
+    background-color:#FFF;
+    filter: alpha(opacity=85);
+    -moz-opacity:0.85;
+    opacity:0.85;
+}
+#workingNow .workingMsg{
+    text-align:center;
+    padding-top:80px;
+    width:100px;
+    background-image:url("workingNow.gif");
+    background-position: center top;
+    background-repeat: no-repeat;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="row"><div class="col-xs-8">
+  <h1>文字列をDBpediaのURIに割り当てます</h1>
+  <p>
+  与えられた文字列に対応するURIを対象エンドポイントに問い合わせして割り当てます。結果はCSV形式でダウンロードできます。
+  一度実行するとリロードするまで再実行は出来ません。
+  </p>
+  <form><div class="form-group">
+	<label>SPARQLエンドポイント:</label>
+    <input id="endpoint" class="form-control" value="http://ja.dbpedia.org/sparql" type="text">
+    <button class="btn" type="button" id="exec_button" onclick="exec()">割当実行</button>
+	</div>
+	<div class="form-group">
+	<label>割当対象文字列 (一行一文字列):</label>
+	<textarea id="literal" rows=10 class="form-control" ></textarea> 
+  	</div></form>
+  </div></div>
+  <div class="row"><div class="col-xs-8">
+  <!-- csvダウンロード -->
+  <div id="download_div"><p>
+  <a id="download" class="btn btn-primary btn-lg" target="_blank">ダウンロード</a></p></div>
+  <!-- 変換テーブル -->
+  <div id="convtable_area" class="well well-sm center-block">
+    <table id="convtable" class="table table-condensed">
+    <caption><b>割当結果</b> (最初の最大10件分)</caption>
+    <thead><tr><th>Literal</th><th>URI</th></tr></thead>
+    <tbody></tbody></table>
+  </div>
+  </div></div>
+</div>
+</body>
+<script type="text/javascript">
+var result_count;
+var total_count;
+$('#download_div').hide();
+$('#convtable_area').hide();
+var resultset= [];
+var exec = function() {
+	$('#exec_button').hide();
+	dispWorking("処理中");
+	rows = $('#literal').val().split("\n");
+	result_count = 0;
+	total_count = rows.length;
+	for ( var r in rows ){
+		issueQuery(rows[r], r);
+	}
+	chkCompletion();
+};
+
+var mkQuery = function(cliteral) {
+	ecliteral = cliteral.replace(/"/g, "\\\"");
+	return 'PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n' +
+	'SELECT DISTINCT ?s\n' +
+	'FROM <http://ja.dbpedia.org>\n' +
+	'WHERE { ?s rdfs:label "' + ecliteral + '"@ja . }'
+};
+
+var issueQuery = function(q,i) {
+	resultset.push({});
+	resultset[i]['literal'] = q;
+	resultset[i]['uri'] = "";
+	qr = sendQuery($('#endpoint').val(), mkQuery(q));
+	qr.fail(
+		function (xhr, textStatus, thrownError) {
+			result_count++;
+		}
+	);
+	qr.done(
+		function (d) {
+			if (d.results.bindings instanceof Array) {
+				result_count++;
+				for (var dt = 0; dt < d.results.bindings.length; dt++) {
+					sp = '';
+					if(dt > 0){
+						sp = '; ';
+					}
+					resultset[i]['uri'] += sp + d.results.bindings[dt]['s'].value;
+				}
+			}
+		}
+	);
+};
+
+var chkCompletion = function(){
+	if(result_count == total_count){
+		var out = "";
+		for (var idx in resultset){
+			var lt = '"' + resultset[idx]['literal'].replace(/"/g,"\"\"") + '"';
+			var ct = '"' + resultset[idx]['uri'].replace(/"/g,"\"\"") + '"';
+			out += lt + "," + ct + "\r\n";
+			if(idx < 10){ // 最初の10件のみ表示
+				$('#convtable').append('<tr>' + '</tr>');
+				$('#convtable tr:last').append('<td>' + resultset[idx]['literal'] + '</td><td>' + resultset[idx]['uri'] + '</td>');
+			}
+		}
+		setBlobUrl("download", out);
+		removeWorking();
+		$('#convtable_area').show();
+		$('#download_div').show();
+	}else{
+	   setTimeout('chkCompletion()',1000);
+	}
+};
+
+var setBlobUrl = function(id, content) {
+    var blob = new Blob([ content ], { "type" : "application/csv;charset=UTF-8" });
+	if(window.navigator.msSaveBlob){ // for IE
+		navigator.msSaveBlob(blob, "output.csv"); 
+	}else{
+		window.URL = window.URL || window.webkitURL;
+		$("#" + id).attr("href", window.URL.createObjectURL(blob));
+		$("#" + id).attr("download", "output.csv");
+	}
+};
+
+var dispWorking = function(m){
+	var disp_msg = "";
+	if( m != ""){
+		disp_msg = "<div class='workingMsg'>" + m + "</div>"; 
+	}
+	if($("#workingNow").size() == 0){
+		$("body").append("<div id='workingNow'>" + disp_msg + "</div>");
+	}
+};
+
+var removeWorking = function(){
+	$('#workingNow').remove();
+};
+</script>
+</html>
