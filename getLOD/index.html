@@ -47,16 +47,15 @@
 <body>
 <div class="container">
   <div class="row"><div class="col-xs-8">
-  <h1>文字列をDBpediaのURIに割り当てます</h1>
-  <p>
-  与えられた文字列に対応するURIを対象エンドポイントに問い合わせして割り当てます。結果はCSV形式でダウンロードできます。
-  一度実行するとリロードするまで再実行は出来ません。
-  本アプリケーションは<a href="https://github.com/yayamamo/anyLink">GitHub</a>で公開しています。
-  </p>
+  <div class="page-header"><h1>なんでもリンク</h1></div>
+  <p class="lead">文字列をDBpediaのURIに割り当てます</p>
+  <p>与えられた文字列に対応するURIを対象エンドポイントに問い合わせして割り当てます。結果はCSV形式でダウンロードできます。
+一度実行するとリロードするまで再実行は出来ません。
+本アプリケーションは<a href="https://github.com/yayamamo/anyLink">GitHub</a>で公開しています。</p>
   <div class="alert alert-warning" role="warning">
-  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-  ウィンドウズでInternet Explorerを利用している場合は、下に「ブロックされているコンテンツを許可」と表示されている場合がありますので、これをクリックしてください。
-</div>
+	<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+	ウィンドウズでInternet Explorerを利用している場合は、下に「ブロックされているコンテンツを許可」と表示されている場合がありますので、これをクリックしてください。
+  </div>
   <form><div class="form-group">
 	<label>SPARQLエンドポイント:</label>
     <input id="endpoint" class="form-control" value="http://ja.dbpedia.org/sparql" type="text">
