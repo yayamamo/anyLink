@@ -33,11 +33,14 @@
     background-repeat: no-repeat;
 }
 #file-input div.input {
-    padding: 60px;
-    border: solid 3px #555;
+    padding: 20px;
+    border: none 1px #555;
     width: 100px;
     height: 100px;
-    background-color: #8dd;
+    background-color: #fff;
+    background-image:url("drug_and_drop.png");
+    background-position: center center;
+    background-repeat: no-repeat;
 }
 </style>
 </head>
@@ -50,6 +53,10 @@
   一度実行するとリロードするまで再実行は出来ません。
   本アプリケーションは<a href="https://github.com/yayamamo/anyLink">GitHub</a>で公開しています。
   </p>
+  <div class="alert alert-warning" role="warning">
+  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+  ウィンドウズでInternet Explorerを利用している場合は、下に「ブロックされているコンテンツを許可」と表示されている場合がありますので、これをクリックしてください。
+</div>
   <form><div class="form-group">
 	<label>SPARQLエンドポイント:</label>
     <input id="endpoint" class="form-control" value="http://ja.dbpedia.org/sparql" type="text">
@@ -58,9 +65,7 @@
 	<div class="form-group">
 	<label>1. 割り当てたい文字列(一行一文字列)が書かれたファイルを以下にドロップしてください。自動で処理が始まります。</label>
 	<div id="file-input">
-		<div class="input">
-		</div>
-    	<div class="out"></div>
+		<div class="input"></div>
 	</div></div>
 	<div class="form-group">
 	<label>2. 割り当てたい文字列(一行一文字列)を入力してください。入力後、「割当実行」をクリックしてください。</label>
@@ -90,8 +95,7 @@ $('#convtable_area').hide();
 var resultset= [];
 
 $(function() {
-	var inEle = $('#file-input div.input'),
-	outEle = $('#file-input div.out');
+	var inEle = $('#file-input div.input');
 
 	inEle
 	.on('dragenter', function(e) {
@@ -123,6 +127,7 @@ var exec = function() {
 };
 
 var processText = function(txt) {
+	$('#file-input').hide();
 	$('#exec_button').hide();
 	dispWorking("処理中");
 	rows = txt.split("\n");
