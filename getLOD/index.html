@@ -58,6 +58,9 @@
   <form><div class="form-group">
 	<label>SPARQLエンドポイント:</label>
     <input id="endpoint" class="form-control" value="http://ja.dbpedia.org/sparql" type="text">
+	</div><div class="form-group">
+	<label>検索対象プロパティ:</label>
+	<input id="predicate" class="form-control" value="rdfs:label" type="text">
 	</div>
 	<h4>以下のいずれかの方法で割り当てます。</h4>
 	<div class="form-group">
@@ -142,7 +145,7 @@ var mkQuery = function(cliteral) {
 	return 'PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n' +
 	'SELECT DISTINCT ?s\n' +
 	'FROM <http://ja.dbpedia.org>\n' +
-	'WHERE { ?s rdfs:label "' + ecliteral + '"@ja . }'
+	'WHERE { ?s ' + $('#predicate').val() + ' "' + ecliteral + '"@ja . }'
 };
 
 var issueQuery = function(q,i) {
